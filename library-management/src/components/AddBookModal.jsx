@@ -5,7 +5,7 @@ export default function AddBookModal({ onClose, onSubmit }) {
   const [totalCopies, setTotalCopies] = useState(1);
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e) {   
     e.preventDefault();
     if (!name.trim() || totalCopies < 1) return;
     setSubmitting(true);

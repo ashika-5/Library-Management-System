@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getBooks, addBook } from "../api/mockApi.js";
 import AddBookModal from "../components/AddBookModal.jsx";
+import { useAuth } from "../context/AuthContext"; 
 
 export default function BookList() {
+  const { user } = useAuth(); 
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -28,12 +30,14 @@ export default function BookList() {
     <div className="page">
       <div className="page-header">
         <h2>Book catalogue</h2>
-        <button
-          className="btn btn-primary"
-          onClick={() => setShowAddModal(true)}
-        >
-          + Add book
-        </button>
+        {user?.role === "admin" && (
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowAddModal(true)}
+          >
+            + Add book
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -44,7 +48,7 @@ export default function BookList() {
             <tr>
               <th>SN</th>
               <th>Name</th>
-              <th>Copies (available/total)</th>
+              <th>Copies </th>
               <th>Action</th>
             </tr>
           </thead>

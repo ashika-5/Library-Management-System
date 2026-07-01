@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
-  getBookById,
+  getBook,
   getBorrowRecordsForBook,
   borrowBook,
   returnBook,
@@ -18,7 +18,7 @@ export default function BookDetail() {
   async function loadData() {
     setLoading(true);
     const [bookData, recordData] = await Promise.all([
-      getBookById(bookId),
+      getBook(bookId),
       getBorrowRecordsForBook(bookId),
     ]);
     setBook(bookData);
@@ -57,7 +57,7 @@ export default function BookDetail() {
             book.availableCopies === 0
               ? "badge badge-danger"
               : "badge badge-success"
-          }
+          } 
         >
           {book.availableCopies}/{book.totalCopies} available
         </span>

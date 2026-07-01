@@ -1,7 +1,16 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { readToken } from "../services/authService";
+import { logoutUser } from "../services/authService";
 
 const AuthContext = createContext(null);
+
+function decodeJWT(token) {
+  try {
+    const payload = token.split(".")[1]; 
+    return JSON.parse(atob(payload)); 
+  } catch {
+    return null;
+  }
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -10,7 +19,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem("lbm_token");
     if (token) {
-      const decoded = readToken(token);
+      const decoded = decodeJWT(token);
       if (decoded) setUser(decoded);
     }
     setLoading(false);
@@ -18,11 +27,12 @@ export function AuthProvider({ children }) {
 
   function login({ token }) {
     localStorage.setItem("lbm_token", token);
-    const decoded = readToken(token);
+    const decoded = decodeJWT(token);
     setUser(decoded);
   }
 
-  function logout() {
+  async function logout() {
+    await logoutUser(); // tells backend to invalidate token
     localStorage.removeItem("lbm_token");
     setUser(null);
   }

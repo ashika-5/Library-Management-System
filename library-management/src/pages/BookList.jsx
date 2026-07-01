@@ -30,14 +30,14 @@ export default function BookList() {
     <div className="page">
       <div className="page-header">
         <h2>Book catalogue</h2>
-        {user?.role === "admin" && (
+        {
           <button
             className="btn btn-primary"
             onClick={() => setShowAddModal(true)}
           >
             + Add book
           </button>
-        )}
+        }
       </div>
 
       {loading ? (

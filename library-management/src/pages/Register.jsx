@@ -5,9 +5,11 @@ import { useAuth } from "../context/AuthContext";
 
 function Register() {
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -15,13 +17,23 @@ function Register() {
     e.preventDefault();
     setError("");
 
+    if (!email.trim()) {
+      setError("Email is required");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
     }
 
     try {
-      const user = await registerUser(username.trim(), password);
+      const user = await registerUser(
+        username.trim(),
+        email.trim(),
+        password
+      );
+
       login(user);
       navigate("/");
     } catch (err) {
@@ -32,6 +44,7 @@ function Register() {
   return (
     <div className="page auth-page">
       <h1>Register</h1>
+
       <form className="book-form" onSubmit={handleSubmit}>
         {error && <p className="error-text">{error}</p>}
 
@@ -42,6 +55,18 @@ function Register() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Enter username"
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter email"
+            required
           />
         </div>
 
@@ -52,6 +77,7 @@ function Register() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter password"
+            required
           />
         </div>
 
@@ -62,6 +88,7 @@ function Register() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirm password"
+            required
           />
         </div>
 

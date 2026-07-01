@@ -1,58 +1,70 @@
-const USERS_KEY = "library_users";
-
-function getUsers() {
-  const raw = localStorage.getItem(USERS_KEY);
-  if (raw) return JSON.parse(raw);
-  const defaults = [
-    { id: 1, username: "ram", password: "1234", role: "admin" },
-    { id: 2, username: "sita", password: "5678", role: "user" },
-  ];
-  localStorage.setItem(USERS_KEY, JSON.stringify(defaults));
-  return defaults;
-}
-
-
-function createToken(user) {
-  return btoa(
-    JSON.stringify({ id: user.id, username: user.username, role: user.role }),
-  );
-}
-
-
-export function readToken(token) {
-  try {
-    return JSON.parse(atob(token));
-  } catch {
-    return null;
-  }
-}
-
+const API_BASE = "https://library-api-9h9j.onrender.com/api";
 
 export async function loginUser(username, password) {
-  const users = getUsers();
-  const user = users.find(
-    (u) => u.username === username && u.password === password,
-  );
-  if (!user) throw new Error("Invalid username or password");
+  const res = await fetch(`${API_BASE}/login/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username,
+      password,
+    }),
+  });
 
-  const token = createToken(user);  
-  return { token };
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(
+      data.detail || data.message || "Invalid username or password",
+    );
+  }
+
+  return { token: data.access };
 }
 
-export async function registerUser(username, password) {
-  const users = getUsers();
-  if (users.find((u) => u.username === username)) {
-    throw new Error("Username already taken");
-  }
-  const newUser = {
-    id: users.length + 1,
-    username,
-    password,
-    role: "user",
-  };
-  users.push(newUser);
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+export async function registerUser(username, email, password) {
+  const res = await fetch(`${API_BASE}/register/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username,
+      email,
+      password,
+    }),
+  });
 
-  const token = createToken(newUser);
-  return { token };
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(
+      data.detail ||
+        Object.values(data).flat().join(", ") ||
+        "Registration failed",
+    );
+  }
+
+  return data;
+}
+
+export async function logoutUser() {
+  const token = localStorage.getItem("lbm_token");
+
+  await fetch(`${API_BASE}/logout/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export function getAuthHeader() {
+  const token = localStorage.getItem("lbm_token");
+
+  return {
+    Authorization: `Bearer ${token}`,
+  };
 }

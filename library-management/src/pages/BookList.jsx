@@ -1,19 +1,44 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getBooks, addBook } from "../api/mockApi.js";
+import { getBooks, addBook, updateBook, deleteBook } from "../api/mockApi.js";
 import AddBookModal from "../components/AddBookModal.jsx";
-import { useAuth } from "../context/AuthContext"; 
 
 export default function BookList() {
-  const { user } = useAuth(); 
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingBook, setEditingBook] = useState(null);
+
+  async function handleEditBook(book) {
+    try {
+      await updateBook(book.id, book);
+      setEditingBook(null);
+      setShowAddModal(false);
+      loadBooks();
+    } catch (err) {
+      alert(err?.message || "Failed to update book");
+    }
+  }
+
+  async function handleDeleteBook(id) {
+    if (!window.confirm("Delete this book?")) return;
+
+    try {
+      await deleteBook(id);
+      loadBooks();
+    } catch (err) {
+      alert(err?.message || "Failed to delete book");
+    }
+  }
 
   async function loadBooks() {
     setLoading(true);
-    setBooks(await getBooks());
-    setLoading(false);
+    try {
+      const data = await getBooks();
+      setBooks(data);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -21,23 +46,30 @@ export default function BookList() {
   }, []);
 
   async function handleAddBook(formData) {
-    await addBook(formData);
-    setShowAddModal(false);
-    loadBooks();
+    try {
+      await addBook(formData);
+      setShowAddModal(false);
+      setEditingBook(null);
+      loadBooks();
+    } catch (err) {
+      alert(err?.message || "Failed to add book");
+    }
   }
 
   return (
     <div className="page">
       <div className="page-header">
-        <h2>Book catalogue</h2>
-        {
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowAddModal(true)}
-          >
-            + Add book
-          </button>
-        }
+        <h2>Book Catalogue</h2>
+
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            setEditingBook(null);
+            setShowAddModal(true);
+          }}
+        >
+          + Add Book
+        </button>
       </div>
 
       {loading ? (
@@ -46,34 +78,56 @@ export default function BookList() {
         <table className="book-table">
           <thead>
             <tr>
-              <th>SN</th>
-              <th>Name</th>
-              <th>Copies </th>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Author</th>
+              <th>ISBN</th>
+              <th>Total Copies</th>
+              <th>Available Copies</th>
               <th>Action</th>
             </tr>
           </thead>
+
           <tbody>
-            {books.map((book, index) => (
+            {books.map((book) => (
               <tr key={book.id}>
-                <td>{index + 1}</td>
-                <td>{book.name}</td>
+                <td>{book.id}</td>
+                <td>{book.title}</td>
+                <td>{book.author}</td>
+                <td>{book.isbn}</td>
+                <td>{book.total_copies}</td>
+
                 <td>
                   <span
                     className={
-                      book.availableCopies === 0
+                      book.available_copies === 0
                         ? "badge badge-danger"
                         : "badge badge-success"
                     }
                   >
-                    {book.availableCopies}/{book.totalCopies}
+                    {book.available_copies}
                   </span>
                 </td>
+
                 <td>
-                  <Link
-                    to={`/books/${book.id}`}
-                    className="icon-btn"
-                    title="View details"
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => {
+                      setEditingBook(book);
+                      setShowAddModal(true);
+                    }}
                   >
+                    ✏ Edit
+                  </button>
+
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => handleDeleteBook(book.id)}
+                  >
+                    🗑 Delete
+                  </button>
+
+                  <Link to={`/books/${book.id}`} className="icon-btn">
                     👁
                   </Link>
                 </td>
@@ -85,8 +139,12 @@ export default function BookList() {
 
       {showAddModal && (
         <AddBookModal
-          onClose={() => setShowAddModal(false)}
-          onSubmit={handleAddBook}
+          book={editingBook}
+          onClose={() => {
+            setShowAddModal(false);
+            setEditingBook(null);
+          }}
+          onSubmit={editingBook ? handleEditBook : handleAddBook}
         />
       )}
     </div>

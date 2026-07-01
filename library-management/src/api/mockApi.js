@@ -8,6 +8,15 @@ function getAuthHeader() {
   };
 }
 
+function normalizeBookData(bookData) {
+  return {
+    title: bookData?.title ?? bookData?.name,
+    author: bookData?.author ?? "",
+    isbn: bookData?.isbn ?? "",
+    total_copies: bookData?.total_copies ?? bookData?.totalCopies ?? 1,
+  };
+}
+
 function normalizeBorrowPayload(payload) {
   if (typeof payload === "object" && payload !== null) {
     return {
@@ -53,12 +62,7 @@ export async function getBorrowRecordsForBook(id) {
 }
 
 export async function addBook(bookData) {
-  const normalizedBookData = {
-    name: bookData.name ?? bookData.title,
-    author: bookData.author,
-    isbn: bookData.isbn,
-    totalCopies: bookData.totalCopies ?? bookData.total_copies,
-  };
+  const normalizedBookData = normalizeBookData(bookData);
 
   const res = await fetch(`${API_BASE}/books/`, {
     method: "POST",
@@ -67,6 +71,23 @@ export async function addBook(bookData) {
   });
   if (!res.ok) throw new Error("Failed to add book");
   return await res.json();
+}
+
+export async function updateBook(id, bookData) {
+  const normalizedBookData = normalizeBookData(bookData);
+
+  const res = await fetch(`${API_BASE}/books/${id}/`, {
+    method: "PATCH",
+    headers: getAuthHeader(),
+    body: JSON.stringify(normalizedBookData),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Failed to update book");
+  }
+
+  return await res.json().catch(() => ({}));
 }
 
 export async function borrowBook(payload) {
@@ -94,4 +115,25 @@ export async function getMyBorrows() {
     headers: getAuthHeader(),
   });
   return await res.json();
+}
+
+
+
+export async function deleteBook(id) {
+  console.log("Deleting book id:", id);
+
+  const res = await fetch(`${API_BASE}/books/${id}/`, {
+    method: "DELETE",
+    headers: getAuthHeader(),
+  });
+
+  console.log("DELETE URL:", `${API_BASE}/books/${id}/`);
+  console.log("Status:", res.status);
+
+  const data = await res.json().catch(() => ({}));
+  console.log("Response:", data);
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to delete book");
+  }
 }

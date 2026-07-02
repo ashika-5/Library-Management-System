@@ -15,6 +15,21 @@ function Login() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+
+    if (!username.trim()) {
+      const message = "Username is empty. Please fill it.";
+      alert(message);
+      setError(message);
+      return;
+    }
+
+    if (!password) {
+      const message = "Password is empty. Please fill it.";
+      alert(message);
+      setError(message);
+      return;
+    }
+
     try {
       const user = await loginUser(username.trim(), password);
       login(user);

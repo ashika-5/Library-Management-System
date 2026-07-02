@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   getBook,
   getBorrowRecordsForBook,
   borrowBook,
   returnBook,
 } from "../api/mockApi.js";
+
 import BorrowModal from "../components/BorrowModal.jsx";
 
 export default function BookDetail() {
   const { bookId } = useParams();
+  const navigate = useNavigate();
+
   const [book, setBook] = useState(null);
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,77 +20,139 @@ export default function BookDetail() {
 
   async function loadData() {
     setLoading(true);
-    const [bookData, recordData] = await Promise.all([
-      getBook(bookId),
-      getBorrowRecordsForBook(bookId),
-    ]);
-    setBook(bookData);
-    setRecords(recordData);
-    setLoading(false);
+
+    try {
+      const [bookData, recordData] = await Promise.all([
+        getBook(bookId),
+        getBorrowRecordsForBook(bookId),
+      ]);
+
+      setBook(bookData);
+      setRecords(recordData);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     loadData();
   }, [bookId]);
 
-  async function handleBorrow(borrowerName) {
-    await borrowBook({ bookId: book.id, borrowerName });
-    setShowBorrowModal(false);
-    loadData();
+  function openBorrowModal() {
+    if (!localStorage.getItem("lbm_token")) {
+      alert("Please log in before borrowing a book.");
+      navigate("/login");
+      return;
+    }
+
+    setShowBorrowModal(true);
+  }
+
+  async function handleBorrow() {
+    if (!localStorage.getItem("lbm_token")) {
+      alert("Please log in before borrowing a book.");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      await borrowBook({
+        book_id: book.id,
+      });
+
+      setShowBorrowModal(false);
+
+      loadData();
+    } catch (err) {
+      alert(err.message);
+    }
   }
 
   async function handleReturn(recordId) {
-    await returnBook(recordId);
-    loadData();
+    try {
+      await returnBook({
+        record_id: recordId,
+        book_id: book.id,
+      });
+
+      loadData();
+    } catch (err) {
+      alert(err.message);
+    }
   }
 
   if (loading) return <p>Loading...</p>;
+
   if (!book) return <p>Book not found.</p>;
 
   return (
     <div className="page">
       <Link to="/" className="back-link">
-        ← Back to catalogue
+        ← Back
       </Link>
 
       <div className="book-summary">
-        <h2>{book.name}</h2>
+        <h2>{book.title}</h2>
+
+        <p>
+          <strong>Author:</strong> {book.author}
+        </p>
+
+        <p>
+          <strong>ISBN:</strong> {book.isbn}
+        </p>
+
         <span
           className={
-            book.availableCopies === 0
+            book.available_copies === 0
               ? "badge badge-danger"
               : "badge badge-success"
-          } 
+          }
         >
-          {book.availableCopies}/{book.totalCopies} available
+          {book.available_copies} / {book.total_copies} Available
         </span>
       </div>
 
       <div className="page-header">
-        <h3>Logs</h3>
+        <h3>Borrow History</h3>
+
         <button
           className="btn btn-primary"
-          disabled={book.availableCopies === 0}
-          onClick={() => setShowBorrowModal(true)}
+          disabled={book.available_copies === 0}
+          onClick={openBorrowModal}
         >
-          {book.availableCopies === 0 ? "No copies left" : "+ Add"}
+          {book.available_copies === 0 ? "No Copies Left" : "Borrow Book"}
         </button>
       </div>
 
       {records.length === 0 ? (
-        <p>No one has borrowed this book yet.</p>
+        <p>No borrow records.</p>
       ) : (
         <table className="book-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Borrowed At</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Return</th>
+            </tr>
+          </thead>
+
           <tbody>
             {records.map((r) => (
               <tr key={r.id}>
-                <td>{r.borrowerName}</td>
-                <td>{r.borrowedDate}</td>
+                <td>{r.id}</td>
+
+                <td>{new Date(r.borrowed_at).toLocaleString()}</td>
+
+                <td>{new Date(r.due_date).toLocaleDateString()}</td>
+
+                <td>{r.is_returned ? "Returned" : "Borrowed"}</td>
+
                 <td>
-                  {r.returnedDate ? (
-                    <span className="returned-date">
-                      Returned on {r.returnedDate}
-                    </span>
+                  {r.is_returned ? (
+                    "✓"
                   ) : (
                     <button
                       className="btn btn-sm"

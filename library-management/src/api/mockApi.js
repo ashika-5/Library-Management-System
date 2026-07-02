@@ -2,10 +2,27 @@ const API_BASE = "https://library-api-9h9j.onrender.com/api";
 
 function getAuthHeader() {
   const token = localStorage.getItem("lbm_token");
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = { "Content-Type": "application/json" };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
+}
+
+function getSignedInUserName() {
+  const token = localStorage.getItem("lbm_token");
+
+  if (!token) return "";
+
+  try {
+    const payload = token.split(".")[1];
+    const decoded = JSON.parse(atob(payload));
+    return decoded.username || decoded.name || decoded.preferred_username || "";
+  } catch {
+    return "";
+  }
 }
 
 function normalizeBookData(bookData) {
@@ -21,11 +38,12 @@ function normalizeBorrowPayload(payload) {
   if (typeof payload === "object" && payload !== null) {
     return {
       book_id: payload.bookId ?? payload.book_id ?? payload.id,
-      borrower_name: payload.borrowerName ?? payload.borrower_name,
+      borrower_name:
+        payload.borrowerName ?? payload.borrower_name ?? getSignedInUserName(),
     };
   }
 
-  return { book_id: payload };
+  return { book_id: payload, borrower_name: getSignedInUserName() };
 }
 
 function normalizeReturnPayload(payload) {
@@ -33,10 +51,12 @@ function normalizeReturnPayload(payload) {
     return {
       record_id: payload.recordId ?? payload.record_id ?? payload.id,
       book_id: payload.bookId ?? payload.book_id,
+      borrower_name:
+        payload.borrowerName ?? payload.borrower_name ?? getSignedInUserName(),
     };
   }
 
-  return { record_id: payload };
+  return { record_id: payload, borrower_name: getSignedInUserName() };
 }
 
 export async function getBooks() {
@@ -91,23 +111,51 @@ export async function updateBook(id, bookData) {
 }
 
 export async function borrowBook(payload) {
+  const token = localStorage.getItem("lbm_token");
+
+  if (!token) {
+    throw new Error("Please log in before borrowing a book.");
+  }
+
   const res = await fetch(`${API_BASE}/borrow/`, {
     method: "POST",
     headers: getAuthHeader(),
     body: JSON.stringify(normalizeBorrowPayload(payload)),
   });
-  if (!res.ok) throw new Error("Failed to borrow book");
-  return await res.json();
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(
+      data.detail || data.message || data.error || "Failed to borrow book",
+    );
+  }
+
+  return data;
 }
 
 export async function returnBook(payload) {
+  const token = localStorage.getItem("lbm_token");
+
+  if (!token) {
+    throw new Error("Please log in before returning a book.");
+  }
+
   const res = await fetch(`${API_BASE}/return/`, {
     method: "POST",
     headers: getAuthHeader(),
     body: JSON.stringify(normalizeReturnPayload(payload)),
   });
-  if (!res.ok) throw new Error("Failed to return book");
-  return await res.json();
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(
+      data.detail || data.message || data.error || "Failed to return book",
+    );
+  }
+
+  return data;
 }
 
 export async function getMyBorrows() {
@@ -116,8 +164,6 @@ export async function getMyBorrows() {
   });
   return await res.json();
 }
-
-
 
 export async function deleteBook(id) {
   console.log("Deleting book id:", id);

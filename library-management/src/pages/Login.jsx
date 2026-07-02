@@ -24,10 +24,14 @@ function Login() {
     }
   }
 
-  function handleGoogleSuccess(credentialResponse) {
-    const result = handleGoogleToken(credentialResponse.credential);
-    login(result);
-    navigate("/");
+  async function handleGoogleSuccess(credentialResponse) {
+    try {
+      const result = await handleGoogleToken(credentialResponse.credential);
+      login(result);
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   return (

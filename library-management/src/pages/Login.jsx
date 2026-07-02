@@ -42,7 +42,17 @@ function Login() {
       login(user);
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err.message);
+      const message = (err.message || "").toLowerCase();
+      let userMessage = err.message;
+
+      if (message.includes("username") || message.includes("user")) {
+        userMessage = "Invalid username. Please try again.";
+      } else if (message.includes("password")) {
+        userMessage = "Invalid password. Please try again.";
+      }
+
+      alert(userMessage);
+      setError(userMessage);
     }
   }
 

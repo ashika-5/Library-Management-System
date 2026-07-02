@@ -18,7 +18,7 @@ function Login() {
     try {
       const user = await loginUser(username.trim(), password);
       login(user);
-      navigate("/");
+      navigate("/", { replace: true });
     } catch (err) {
       setError(err.message);
     }
@@ -28,7 +28,7 @@ function Login() {
     try {
       const result = await handleGoogleToken(credentialResponse.credential);
       login(result);
-      navigate("/");
+      navigate("/", { replace: true });
     } catch (err) {
       setError(err.message);
     }

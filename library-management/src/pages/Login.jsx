@@ -16,13 +16,6 @@ function Login() {
     e.preventDefault();
     setError("");
 
-    if (!username.trim() && !password) {
-      const message = "Username and password is empty. Please fill it.";
-      alert(message);
-      setError(message);
-      return;
-    }
-
     if (!username.trim()) {
       const message = "Username is empty. Please fill it.";
       alert(message);
@@ -42,17 +35,7 @@ function Login() {
       login(user);
       navigate("/", { replace: true });
     } catch (err) {
-      const message = (err.message || "").toLowerCase();
-      let userMessage = err.message;
-
-      if (message.includes("username") || message.includes("user")) {
-        userMessage = "Invalid username. Please try again.";
-      } else if (message.includes("password")) {
-        userMessage = "Invalid password. Please try again.";
-      }
-
-      alert(userMessage);
-      setError(userMessage);
+      setError(err.message);
     }
   }
 

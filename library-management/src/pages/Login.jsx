@@ -16,6 +16,13 @@ function Login() {
     e.preventDefault();
     setError("");
 
+    if (!username.trim() && !password) {
+      const message = "Username and password is empty. Please fill it.";
+      alert(message);
+      setError(message);
+      return;
+    }
+
     if (!username.trim()) {
       const message = "Username is empty. Please fill it.";
       alert(message);

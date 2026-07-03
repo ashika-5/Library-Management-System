@@ -48,6 +48,7 @@ export default function BookList() {
   async function handleAddBook(formData) {
     try {
       await addBook(formData);
+      alert("Book added successfully!");
       setShowAddModal(false);
       setEditingBook(null);
       loadBooks();

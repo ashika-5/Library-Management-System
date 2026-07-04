@@ -9,28 +9,6 @@ export default function BookList() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
 
-  async function handleEditBook(book) {
-    try {
-      await updateBook(book.id, book);
-      setEditingBook(null);
-      setShowAddModal(false);
-      loadBooks();
-    } catch (err) {
-      alert(err?.message || "Failed to update book");
-    }
-  }
-
-  async function handleDeleteBook(id) {
-    if (!window.confirm("Delete this book?")) return;
-
-    try {
-      await deleteBook(id);
-      loadBooks();
-    } catch (err) {
-      alert(err?.message || "Failed to delete book");
-    }
-  }
-
   async function loadBooks() {
     setLoading(true);
     try {
@@ -57,11 +35,32 @@ export default function BookList() {
     }
   }
 
+  async function handleEditBook(book) {
+    try {
+      await updateBook(book.id, book);
+      setEditingBook(null);
+      setShowAddModal(false);
+      loadBooks();
+    } catch (err) {
+      alert(err?.message || "Failed to update book");
+    }
+  }
+
+  async function handleDeleteBook(id) {
+    if (!window.confirm("Delete this book permanently?")) return;
+    try {
+      await deleteBook(id);
+      loadBooks();
+    } catch (err) {
+      alert(err?.message || "Failed to delete book");
+    }
+  }
+
   return (
     <div className="page">
+      {/* ── Page header ── */}
       <div className="page-header">
         <h2>Book Catalogue</h2>
-
         <button
           className="btn btn-primary"
           onClick={() => {
@@ -73,8 +72,15 @@ export default function BookList() {
         </button>
       </div>
 
+      {}
       {loading ? (
-        <p>Loading books...</p>
+        <div className="loading-state">Loading books...</div>
+      ) : books.length === 0 ? (
+        /* ── Empty state ── */
+        <div className="empty-state">
+          <span>📚</span>
+          <p>No books in the catalogue yet. Add the first one!</p>
+        </div>
       ) : (
         <table className="book-table">
           <thead>
@@ -83,54 +89,85 @@ export default function BookList() {
               <th>Title</th>
               <th>Author</th>
               <th>ISBN</th>
-              <th>Total Copies</th>
-              <th>Available Copies</th>
-              <th>Action</th>
+              <th>Total</th>
+              <th>Available</th>
+              <th>Actions</th>
             </tr>
           </thead>
-
           <tbody>
             {books.map((book) => (
               <tr key={book.id}>
-                <td>{book.id}</td>
-                <td>{book.title}</td>
-                <td>{book.author}</td>
-                <td>{book.isbn}</td>
-                <td>{book.total_copies}</td>
+                <td style={{ color: "var(--ink-3)", fontSize: "13px" }}>
+                  #{book.id}
+                </td>
+
+                <td>
+                  <span style={{ fontWeight: 600, color: "var(--ink)" }}>
+                    {book.title}
+                  </span>
+                </td>
+
+                <td style={{ color: "var(--ink-2)" }}>{book.author}</td>
+
+                <td
+                  style={{
+                    color: "var(--ink-3)",
+                    fontSize: "13px",
+                    fontFamily: "monospace",
+                  }}
+                >
+                  {book.isbn}
+                </td>
+
+                <td style={{ textAlign: "center" }}>{book.total_copies}</td>
 
                 <td>
                   <span
                     className={
                       book.available_copies === 0
                         ? "badge badge-danger"
-                        : "badge badge-success"
+                        : book.available_copies <= 2
+                          ? "badge badge-warning"
+                          : "badge badge-success"
                     }
                   >
-                    {book.available_copies}
+                    {}
+                    {book.available_copies === 0
+                      ? "Out of stock"
+                      : `${book.available_copies} left`}
                   </span>
                 </td>
 
                 <td>
-                  <button
-                    className="btn btn-sm"
-                    onClick={() => {
-                      setEditingBook(book);
-                      setShowAddModal(true);
-                    }}
-                  >
-                    ✏ Edit
-                  </button>
+                  <div className="action-cell">
+                    {}
+                    <button
+                      className="btn btn-sm"
+                      onClick={() => {
+                        setEditingBook(book);
+                        setShowAddModal(true);
+                      }}
+                    >
+                      ✏ Edit
+                    </button>
 
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => handleDeleteBook(book.id)}
-                  >
-                    🗑 Delete
-                  </button>
+                    {}
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleDeleteBook(book.id)}
+                    >
+                      🗑
+                    </button>
 
-                  <Link to={`/books/${book.id}`} className="icon-btn">
-                    👁
-                  </Link>
+                    {}
+                    <Link
+                      to={`/books/${book.id}`}
+                      className="icon-btn"
+                      title="View details & borrow history"
+                    >
+                      👁
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))}

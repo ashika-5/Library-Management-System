@@ -9,40 +9,22 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-
-    if (!username.trim() && !password) {
-      const message = "Username and password is empty. Please fill it.";
-      alert(message);
-      setError(message);
-      return;
-    }
-
-    if (!username.trim()) {
-      const message = "Username is empty. Please fill it.";
-      alert(message);
-      setError(message);
-      return;
-    }
-
-    if (!password) {
-      const message = "Password is empty. Please fill it.";
-      alert(message);
-      setError(message);
-      return;
-    }
-
+    setLoading(true);
     try {
       const user = await loginUser(username.trim(), password);
       login(user);
       navigate("/", { replace: true });
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -57,43 +39,77 @@ function Login() {
   }
 
   return (
-    <div className="page auth-page">
-      <h1>Login</h1>
-      <form className="book-form" onSubmit={handleSubmit}>
-        {error && <p className="error-text">{error}</p>}
-
-        <div className="form-group">
-          <label>Username</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter username"
-          />
+    <div className="auth-root">
+      {}
+      <div className="auth-left">
+        <div className="auth-left-overlay" />
+        <div className="auth-left-content">
+          <p className="auth-left-eyebrow">Welcome to</p>
+          <h1 className="auth-left-title">
+            LIBRARY
+            <br />
+            MANAGEMENT
+            <br />
+            SYSTEM
+          </h1>
+          <div className="auth-left-line" />
+          <p className="auth-left-tagline">Your gateway to knowledge</p>
         </div>
+      </div>
 
-        <div className="form-group">
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter password"
-          />
+      {}
+      <div className="auth-right">
+        <div className="auth-box">
+          <div className="auth-logo">📚</div>
+          <h2 className="auth-title">Sign In</h2>
+          <p className="auth-subtitle">Access the library catalogue</p>
+
+          {error && <div className="auth-error">⚠️ {error}</div>}
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="auth-field">
+              <label>Username</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
+                autoFocus
+                required
+              />
+            </div>
+
+            <div className="auth-field">
+              <label>Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+
+            <button type="submit" className="auth-btn" disabled={loading}>
+              {loading ? "Signing in..." : "Sign In →"}
+            </button>
+          </form>
+
+          <div className="auth-or">
+            <span>or continue with</span>
+          </div>
+
+          <div className="auth-google">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError("Google login failed. Please try again.")}
+            />
+          </div>
+
+          <p className="auth-switch">
+            Don't have an account? <Link to="/register">Register here</Link>
+          </p>
         </div>
-
-        <button type="submit" className="btn btn-primary">
-          Login
-        </button>
-      </form>
-
-      <p style={{ textAlign: "center", margin: "12px 0" }}>or</p>
-
-      <div style={{ display: "flex", justifyContent: "center" }}>
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => setError("Google login failed")}
-        />
       </div>
     </div>
   );

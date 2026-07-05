@@ -12,7 +12,7 @@ export default function AddBookModal({ onClose, onSubmit, book = null }) {
 
   function handleImageChange(e) {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) return; 
 
     if (!file.type.startsWith("image/")) {
       alert("Please select an image file only (jpg, png, webp, etc.)");

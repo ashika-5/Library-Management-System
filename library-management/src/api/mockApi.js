@@ -58,14 +58,13 @@ function normalizeReturnPayload(payload) {
   return { record_id: payload, borrower_name: getSignedInUserName() };
 }
 
-export async function getBooks() {
-  const res = await fetch(`${API_BASE}/books/`);
+export async function getBook(id) {
+  const res = await fetch(`${API_BASE}/books/${id}/`);
   const data = await res.json();
-  // fix relative image URLs for every book
-  return data.map((book) => ({
-    ...book,
-    image: fixImageUrl(book.image),
-  }));
+  return {
+    ...data,
+    image: data.image || null,  
+  };
 }
 
 export async function getBook(id) {

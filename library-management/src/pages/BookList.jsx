@@ -76,7 +76,7 @@ export default function BookList() {
       {loading ? (
         <div className="loading-state">Loading books...</div>
       ) : books.length === 0 ? (
-        /* ── Empty state ── */
+      
         <div className="empty-state">
           <span>📚</span>
           <p>No books in the catalogue yet. Add the first one!</p>

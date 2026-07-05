@@ -1,11 +1,13 @@
 const API_BASE = "https://library-api-9h9j.onrender.com/api";
 
+
 function getAuthHeader() {
   const token = localStorage.getItem("lbm_token");
   const headers = { "Content-Type": "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;
   return headers;
 }
+
 
 function getAuthHeaderFormData() {
   const token = localStorage.getItem("lbm_token");
@@ -26,14 +28,14 @@ function getSignedInUserName() {
   }
 }
 
+
 function fixImageUrl(url) {
   if (!url) return null;
 
   const value = String(url).trim();
   if (!value) return null;
   if (/^https?:\/\//i.test(value)) return value;
-  if (value.startsWith("/"))
-    return `https://library-api-9h9j.onrender.com${value}`;
+  if (value.startsWith("/")) return `https://library-api-9h9j.onrender.com${value}`;
 
   return `https://library-api-9h9j.onrender.com/${value.replace(/^\/+/, "")}`;
 }
@@ -82,7 +84,7 @@ function normalizeReturnPayload(payload) {
 export async function getBooks() {
   const res = await fetch(`${API_BASE}/books/`);
   const data = await res.json().catch(() => []);
-  const list = Array.isArray(data) ? data : (data.results ?? []);
+  const list = Array.isArray(data) ? data : data.results ?? [];
   return list.map(normalizeBook);
 }
 
@@ -114,6 +116,7 @@ export async function addBook(bookData) {
     bookData.total_copies ?? bookData.totalCopies ?? 1,
   );
 
+  
   if (bookData.image) {
     form.append("image", bookData.image);
   }
@@ -126,9 +129,10 @@ export async function addBook(bookData) {
 
   if (!res.ok) throw new Error("Failed to add book");
   const data = await res.json();
-  console.log("ADD BOOK RESPONSE:", data);
+  console.log("ADD BOOK RESPONSE:", data); 
   return { ...data, image: fixImageUrl(data.image) };
 }
+
 
 export async function updateBook(id, bookData) {
   const form = new FormData();
@@ -140,6 +144,7 @@ export async function updateBook(id, bookData) {
     bookData.total_copies ?? bookData.totalCopies ?? 1,
   );
 
+  
   if (bookData.image) {
     form.append("image", bookData.image);
   }

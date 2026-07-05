@@ -91,26 +91,54 @@ export default function BookDetail() {
         ← Back
       </Link>
 
-      <div className="book-summary">
-        <h2>{book.title}</h2>
+      <div className="book-detail-card">
+        <div className="book-detail-inner">
+          <div className="book-cover-wrap">
+            {book.image ? (
+              <img
+                src={book.image}
+                alt={book.title}
+                className="book-cover-img"
+              />
+            ) : (
+              <div className="book-cover-placeholder">
+                <span>📖</span>
+                <div>No cover</div>
+              </div>
+            )}
+          </div>
 
-        <p>
-          <strong>Author:</strong> {book.author}
-        </p>
+          <div className="book-info">
+            <h2>{book.title}</h2>
 
-        <p>
-          <strong>ISBN:</strong> {book.isbn}
-        </p>
+            <p className="book-info-author">{book.author}</p>
 
-        <span
-          className={
-            book.available_copies === 0
-              ? "badge badge-danger"
-              : "badge badge-success"
-          }
-        >
-          {book.available_copies} / {book.total_copies} Available
-        </span>
+            <div className="book-meta-grid">
+              <div className="book-meta-item">
+                <div className="book-meta-label">ISBN</div>
+                <div className="book-meta-value">{book.isbn}</div>
+              </div>
+              <div className="book-meta-item">
+                <div className="book-meta-label">Availability</div>
+                <div className="book-meta-value">
+                  {book.available_copies} / {book.total_copies}
+                </div>
+              </div>
+            </div>
+
+            <span
+              className={
+                book.available_copies === 0
+                  ? "badge badge-danger"
+                  : "badge badge-success"
+              }
+            >
+              {book.available_copies === 0
+                ? "Out of stock"
+                : "Available to borrow"}
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="page-header">

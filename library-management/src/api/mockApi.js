@@ -1,13 +1,11 @@
 const API_BASE = "https://library-api-9h9j.onrender.com/api";
 
-
 function getAuthHeader() {
   const token = localStorage.getItem("lbm_token");
   const headers = { "Content-Type": "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;
   return headers;
 }
-
 
 function getAuthHeaderFormData() {
   const token = localStorage.getItem("lbm_token");
@@ -28,11 +26,34 @@ function getSignedInUserName() {
   }
 }
 
-
 function fixImageUrl(url) {
   if (!url) return null;
-  if (url.startsWith("http")) return url;
-  return `https://library-api-9h9j.onrender.com${url}`;
+
+  const value = String(url).trim();
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  if (value.startsWith("/"))
+    return `https://library-api-9h9j.onrender.com${value}`;
+
+  return `https://library-api-9h9j.onrender.com/${value.replace(/^\/+/, "")}`;
+}
+
+function normalizeBook(book) {
+  if (!book || typeof book !== "object") return book;
+
+  const imageValue =
+    book.image ??
+    book.cover ??
+    book.cover_image ??
+    book.image_url ??
+    book.thumbnail ??
+    book.picture ??
+    null;
+
+  return {
+    ...book,
+    image: fixImageUrl(imageValue),
+  };
 }
 
 function normalizeBorrowPayload(payload) {
@@ -58,23 +79,17 @@ function normalizeReturnPayload(payload) {
   return { record_id: payload, borrower_name: getSignedInUserName() };
 }
 
-export async function getBook(id) {
-  const res = await fetch(`${API_BASE}/books/${id}/`);
-  const data = await res.json();
-  return {
-    ...data,
-    image: data.image || null,  
-  };
+export async function getBooks() {
+  const res = await fetch(`${API_BASE}/books/`);
+  const data = await res.json().catch(() => []);
+  const list = Array.isArray(data) ? data : (data.results ?? []);
+  return list.map(normalizeBook);
 }
 
 export async function getBook(id) {
   const res = await fetch(`${API_BASE}/books/${id}/`);
-  const data = await res.json();
-  
-  return {
-    ...data,
-    image: fixImageUrl(data.image),
-  };
+  const data = await res.json().catch(() => ({}));
+  return normalizeBook(data);
 }
 
 export async function getBorrowRecordsForBook(id) {
@@ -99,7 +114,6 @@ export async function addBook(bookData) {
     bookData.total_copies ?? bookData.totalCopies ?? 1,
   );
 
-  
   if (bookData.image) {
     form.append("image", bookData.image);
   }
@@ -112,10 +126,9 @@ export async function addBook(bookData) {
 
   if (!res.ok) throw new Error("Failed to add book");
   const data = await res.json();
-  console.log("ADD BOOK RESPONSE:", data); 
+  console.log("ADD BOOK RESPONSE:", data);
   return { ...data, image: fixImageUrl(data.image) };
 }
-
 
 export async function updateBook(id, bookData) {
   const form = new FormData();
@@ -127,7 +140,6 @@ export async function updateBook(id, bookData) {
     bookData.total_copies ?? bookData.totalCopies ?? 1,
   );
 
-  
   if (bookData.image) {
     form.append("image", bookData.image);
   }

@@ -58,7 +58,7 @@ export default function BookList() {
 
   return (
     <div className="page">
-      { }
+      {}
       <div className="page-header">
         <h2>Book Catalogue</h2>
         <button
@@ -76,7 +76,6 @@ export default function BookList() {
       {loading ? (
         <div className="loading-state">Loading books...</div>
       ) : books.length === 0 ? (
-      
         <div className="empty-state">
           <span>📚</span>
           <p>No books in the catalogue yet. Add the first one!</p>
@@ -85,6 +84,7 @@ export default function BookList() {
         <table className="book-table">
           <thead>
             <tr>
+              <th>Cover</th>
               <th>ID</th>
               <th>Title</th>
               <th>Author</th>
@@ -97,6 +97,20 @@ export default function BookList() {
           <tbody>
             {books.map((book) => (
               <tr key={book.id}>
+                <td>
+                  <div className="book-cover-cell">
+                    {book.image ? (
+                      <img
+                        src={book.image}
+                        alt={book.title}
+                        className="book-list-cover"
+                      />
+                    ) : (
+                      <div className="book-list-cover-placeholder">📖</div>
+                    )}
+                  </div>
+                </td>
+
                 <td style={{ color: "var(--ink-3)", fontSize: "13px" }}>
                   #{book.id}
                 </td>

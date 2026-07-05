@@ -58,7 +58,7 @@ export default function BookList() {
 
   return (
     <div className="page">
-      {/* ── Page header ── */}
+      { }
       <div className="page-header">
         <h2>Book Catalogue</h2>
         <button

@@ -16,7 +16,7 @@ export default function AddBookModal({ onClose, onSubmit, book = null }) {
 
     if (!file.type.startsWith("image/")) {
       alert("Please select an image file only (jpg, png, webp, etc.)");
-      e.target.value = ""; // reset the input
+      e.target.value = ""; 
       return;
     }
 
@@ -24,6 +24,8 @@ export default function AddBookModal({ onClose, onSubmit, book = null }) {
 
     setImagePreview(URL.createObjectURL(file));
   }
+
+  
 
   function handleRemoveImage() {
     setImage(null);
@@ -63,7 +65,7 @@ export default function AddBookModal({ onClose, onSubmit, book = null }) {
           <h3>{isEdit ? "✏️ Edit Book" : "📖 Add New Book"}</h3>
         </div>
 
-        {/* ── Form ── */}
+        {}
         <div className="modal-body">
           <form onSubmit={handleSubmit}>
             <label>
@@ -109,7 +111,7 @@ export default function AddBookModal({ onClose, onSubmit, book = null }) {
 
             {}
             <label>
-              Cover Image ()
+              Image
               {}
               <input
                 type="file"
